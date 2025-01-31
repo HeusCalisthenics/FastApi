@@ -1,5 +1,5 @@
 import requests
-from keys import coinstats_api
+from FastApi.keys import coinstats_api
 
 url = "https://openapiv1.coinstats.app/coins?symbol=BTC"
 
