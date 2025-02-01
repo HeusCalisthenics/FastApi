@@ -6,17 +6,34 @@ services:
     ports:
       - "8000:8000"
     volumes:
-      - ./database:/app/database # ✅ Correctly indented!    environment:
+      - ./database:/app/database
+      - delta_storage:/app/delta_tables # Persistent Delta Lake storage
     environment:
       - DATABASE_URL=sqlite:///app/database/requests.db
+    networks:
+      - mynetwork
+
+  spark:
+    image: jupyter/pyspark-notebook
+    ports:
+      - "8888:8888"
+    volumes:
+      - delta_storage:/app/delta_tables
+    networks:
+      - mynetwork
 
   streamlit:
     build:
       context: ./frontend
-
     ports:
       - "8501:8501"
     depends_on:
       - fastapi
     volumes:
       - ./frontend:/app/frontend
+
+volumes:
+  delta_storage: # Persistent volume for Delta Lake storage
+
+networks:
+  mynetwork:

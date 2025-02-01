@@ -1,7 +1,7 @@
 import streamlit as st
 import requests
 
-BASE_API_URL = "http://127.0.0.1:8000/logs/json/"
+BASE_API_URL = "http://fastapi:8000/logs/json/"  # Use FastAPI service name instead of localhost
 
 st.title("API Logs Dashboard")
 
