@@ -1,0 +1,22 @@
+version: "3.8"
+
+services:
+  fastapi:
+    build: .
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./database:/app/database # ✅ Correctly indented!    environment:
+    environment:
+      - DATABASE_URL=sqlite:///app/database/requests.db
+
+  streamlit:
+    build:
+      context: ./frontend
+
+    ports:
+      - "8501:8501"
+    depends_on:
+      - fastapi
+    volumes:
+      - ./frontend:/app/frontend

@@ -4,8 +4,11 @@ import datetime
 import os
 
 # Define the correct database path
-DATABASE_PATH = "C:/Users/31614/OneDrive/Desktop/FastApi/Database/requests.db"
-DATABASE_URL = f"sqlite:///{DATABASE_PATH}"
+# DATABASE_PATH = "C:/Users/31614/OneDrive/Desktop/FastApi/database/requests.db"
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+DATABASE_URL = f"sqlite:///{BASE_DIR}/../database/requests.db"
+
 
 # Create database engine
 engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
