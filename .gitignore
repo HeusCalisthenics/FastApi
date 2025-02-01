@@ -6,6 +6,19 @@ __pycache__/
 # C extensions
 *.so
 
+
+# Ignore virtual environment
+venv/
+
+# Ignore compiled Python files
+__pycache__/
+*.pyc
+*.pyo
+
+# Ignore SQLite database
+database/requests.db
+
+
 # Distribution / packaging
 .Python
 build/
