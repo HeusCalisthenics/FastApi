@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from app.routes.crypto import router as crypto_router
 from app.routes.logs import router as logs_router
 
+
 app = FastAPI()
 
 # Include Routers
