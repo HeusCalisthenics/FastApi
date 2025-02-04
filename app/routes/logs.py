@@ -1,52 +1,84 @@
-from fastapi import APIRouter, HTTPException
-from pyspark.sql import SparkSession
+from fastapi import APIRouter, HTTPException, Request
+from pyspark.sql.functions import current_timestamp
 from delta import configure_spark_with_delta_pip
+from delta.tables import DeltaTable
 from pydantic import BaseModel
+from datetime import datetime, timezone
 import os
+
+from initialize_delta_tables import LOG_TABLE_PATH
+
+from spark_session import spark
 
 router = APIRouter()
 
-# Define Delta Table Storage Path
-DELTA_TABLE_PATH = "/app/delta_tables/logs"
+# Delta Table Storage Path
+# LOG_TABLE_PATH = "/app/delta_tables/logs"
+os.makedirs(LOG_TABLE_PATH, exist_ok=True)
 
-# Ensure Delta Lake directory exists
-os.makedirs(DELTA_TABLE_PATH, exist_ok=True)
 
-# ✅ Configure Spark with Delta Storage explicitly
-builder = (
-    SparkSession.builder
-    .appName("FastAPI + Delta Lake")
-    .config("spark.sql.extensions", "io.delta.sql.DeltaSparkSessionExtension")
-    .config("spark.sql.catalog.spark_catalog", "org.apache.spark.sql.delta.catalog.DeltaCatalog")
-    .config("spark.jars", "/opt/spark/jars/delta-core_2.12-2.4.0.jar,/opt/spark/jars/delta-spark_2.12-3.3.0.jar,/opt/spark/jars/delta-storage-2.4.0.jar")
-)
 
-spark = configure_spark_with_delta_pip(builder).getOrCreate()
 
-# Pydantic model for input validation
-class LogEntry(BaseModel):
-    message: str
+# Define LogEntry Pydantic Model
+# class LogEntry(BaseModel):
+#     message: str
 
-@router.post("/log/")
-def write_log(log_entry: LogEntry):
-    """Append a new log message to Delta Lake."""
-    try:
-        df = spark.createDataFrame([(log_entry.message,)], ["message"])
-        df.write.format("delta").mode("append").save(DELTA_TABLE_PATH)
-        return {"status": "success", "message": log_entry.message}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error writing log: {str(e)}")
+async def log_api_call(request: Request, call_next):
+    """Middleware to log all API requests into Delta Lake."""
+    start_time = datetime.now(timezone.utc)
+    ip_address = request.client.host
+    endpoint = request.url.path
+    method = request.method
+
+    response = await call_next(request)  # Continue processing the request
+
+    status_code = response.status_code
+    log_entry = {
+        "ip_address": ip_address,
+        "endpoint": endpoint,
+        "method": method,
+        "status_code": status_code,
+        "timestamp": start_time,
+    }
+
+    # Convert to Spark DataFrame
+    df = spark.createDataFrame([log_entry])
+
+    # ✅ Append to Delta table
+    df.write.format("delta").mode("append").option("mergeSchema", "true").save(LOG_TABLE_PATH)
+
+    print(f"✅ API Log Stored: {log_entry}")  # Debugging
+
+    return response
+
+# ✅ Apply the middleware globally
+def register_logging_middleware(app):
+    app.middleware("http")(log_api_call)
+
+
+
 
 @router.get("/logs/")
 def read_logs():
     """Read all log messages from Delta Lake."""
     try:
-        if not os.path.exists(DELTA_TABLE_PATH):
+        if not os.path.exists(LOG_TABLE_PATH):
             return {"logs": []}  # Return empty list if table doesn't exist
         
-        df = spark.read.format("delta").load(DELTA_TABLE_PATH)
+        df = spark.read.format("delta").load(LOG_TABLE_PATH)
         logs = df.collect()
-        return {"logs": [row["message"] for row in logs]}
+        return {
+            "logs": [
+                {
+                    "ip_address": row["ip_address"],
+                    "endpoint": row["endpoint"],
+                    "method": row["method"],
+                    "status_code": row["status_code"],
+                    "timestamp": row["timestamp"]
+                } 
+                for row in logs
+            ]
+        }
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error reading logs: {str(e)}")
 
@@ -54,8 +86,8 @@ def read_logs():
 def read_latest_log():
     """Get the most recent log entry from Delta Lake."""
     try:
-        df = spark.read.format("delta").load(DELTA_TABLE_PATH)
-        latest_log = df.orderBy(df["message"].desc()).limit(1).collect()
+        df = spark.read.format("delta").load(LOG_TABLE_PATH)
+        latest_log = df.orderBy(df["timestamp"].desc()).limit(1).collect()
         return {"latest_log": latest_log[0]["message"] if latest_log else "No logs found"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error fetching latest log: {str(e)}")

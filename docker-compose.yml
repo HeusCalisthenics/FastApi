@@ -7,7 +7,7 @@ services:
       - "8000:8000"
     volumes:
       - ./database:/app/database
-      - delta_storage:/app/delta_tables # Persistent Delta Lake storage
+      - ./delta_tables:/app/delta_tables
     environment:
       - DATABASE_URL=sqlite:///app/database/requests.db
     networks:
@@ -19,6 +19,7 @@ services:
       - "8888:8888"
     volumes:
       - delta_storage:/app/delta_tables
+      - ./notebooks:/home/jovyan/notebooks # Mount local notebooks to the container jovyan is the root user? i dont know why
     networks:
       - mynetwork
 

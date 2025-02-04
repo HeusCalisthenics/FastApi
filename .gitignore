@@ -7,6 +7,11 @@ __pycache__/
 *.so
 
 
+#Delta / parquet files
+000000000*.json
+*.json.crc
+*.parquet*
+
 # Ignore virtual environment
 venv/
 
