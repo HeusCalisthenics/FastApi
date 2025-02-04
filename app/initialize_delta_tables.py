@@ -1,13 +1,9 @@
 from pyspark.sql import SparkSession
-from pyspark.sql.types import StructType, StructField, StringType, TimestampType
+from pyspark.sql.types import StructType, StructField, StringType, TimestampType , DoubleType
 from delta.tables import DeltaTable
+from spark_session import spark
 
-# Initialize Spark session with Delta support
-spark = SparkSession.builder \
-    .appName("FastAPI Delta Lake") \
-    .config("spark.sql.extensions", "io.delta.sql.DeltaSparkSessionExtension") \
-    .config("spark.sql.catalog.spark_catalog", "org.apache.spark.sql.delta.catalog.DeltaCatalog") \
-    .getOrCreate()
+
 
 # Define table paths
 LOG_TABLE_PATH = "/app/delta_tables/logs"
@@ -21,10 +17,12 @@ log_schema = StructType([
 
 # Define schema for crypto requests
 crypto_schema = StructType([
+    StructField("ip_address", StringType(), True),  # ✅ Missing in your original schema
     StructField("symbol", StringType(), True),
-    StructField("price", StringType(), True),
+    StructField("price", DoubleType(), True),  # ✅ Should be DoubleType() not StringType()
     StructField("timestamp", TimestampType(), True),
 ])
+
 
 def delta_table_exists(spark, path):
     """Check if a Delta table exists at the given path."""
@@ -37,7 +35,7 @@ def initialize_delta_table(path, schema):
     """Check if the Delta table exists, and create it if not."""
     if not delta_table_exists(spark, path):
         df = spark.createDataFrame([], schema=schema)
-        df.write.format("delta").mode("overwrite").save(path)
+        df.write.format("delta").mode("ignore").save(path)
         print(f"✅ Delta table initialized at: {path}")
     else:
         print(f"🔄 Delta table already exists at: {path}, skipping initialization.")

@@ -33,18 +33,29 @@ RUN curl -L -o /opt/spark/jars/delta-spark_2.12-3.2.0.jar \
 # Set working directory
 WORKDIR /app
 
+# ✅ Set PYTHONPATH so modules inside /app can be imported
+ENV PYTHONPATH=/app
+
+
 # Copy requirements and install Python dependencies
 COPY requirements.txt /app/
 RUN pip install --upgrade pip && pip install -r requirements.txt
 
-# Copy the application code
-COPY app /app/app
-COPY database /app/database
 COPY keys.py /app/
+COPY app /app/
+COPY app /app/app
+
+
+# Copy the application code
+# COPY app /app/app
+# COPY database /app/database
+# COPY app/spark_session.py /app/
+# COPY app/initialize_delta_tables.py /app/
+
+COPY app/scripts /app/scripts
 
 
 # Copy initialization script
-COPY app/initialize_delta_tables.py /app/
 
 # Run the table initialization before starting FastAPI
 RUN python3 /app/initialize_delta_tables.py
