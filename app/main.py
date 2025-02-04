@@ -18,9 +18,6 @@ app.include_router(log_router)
 
 @app.get("/")
 def root():
-    LOG_TABLE_PATH = "/app/delta_tables/api_logs"
-    df = spark.read.format("delta").load(LOG_TABLE_PATH)
-    df.printSchema()
     return {"message": "Welcome to the CoinStats API! Use /crypto/{symbol} to fetch cryptocurrency data, and /logs/ to view API logs."}
 
 if __name__ == "__main__":

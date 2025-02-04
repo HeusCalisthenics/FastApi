@@ -32,9 +32,12 @@ services:
       - fastapi
     volumes:
       - ./frontend:/app/frontend
+    networks:
+      - mynetwork
 
 volumes:
   delta_storage: # Persistent volume for Delta Lake storage
 
 networks:
   mynetwork:
+    driver: bridge
