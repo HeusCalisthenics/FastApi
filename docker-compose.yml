@@ -6,6 +6,7 @@ services:
     ports:
       - "8000:8000"
     volumes:
+      - ./data:/mnt/data
       - ./database:/app/database
       - ./delta_tables:/app/delta_tables
     environment:
@@ -19,7 +20,9 @@ services:
       - "8888:8888"
     volumes:
       - delta_storage:/app/delta_tables
-      - ./notebooks:/home/jovyan/notebooks # Mount local notebooks to the container jovyan is the root user? i dont know why
+      - ./notebooks:/home/jovyan/notebooks # Mount local notebooks to the container jovyan is the root user?
+      - ./data:/mnt/data
+
     networks:
       - mynetwork
 
