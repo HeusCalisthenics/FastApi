@@ -5,10 +5,12 @@ __pycache__/
 
 # C extensions
 *.so
+*.crc
 
+*.csv
 
 #Delta / parquet files
-000000000*.json
+*000000000*.json
 *.json.crc
 *.parquet*
 

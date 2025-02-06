@@ -1,15 +1,16 @@
 from fastapi import FastAPI
 from app.routes.crypto import router as crypto_router
-from app.routes.logs import router as logs_router
-from app.routes.logs import router as log_router, register_logging_middleware
+from app.routes.logs_api import router as logs_router
+from app.routes.logs_api import router as log_router, register_logging_middleware
 from spark_session import spark
-
+from app.routes.portfolio_degiro import router as degiro_router
 
 app = FastAPI()
 
 # Include Routers
 app.include_router(crypto_router)
 app.include_router(logs_router)
+app.include_router(degiro_router)
 # ✅ Register the logging middleware
 register_logging_middleware(app)
 

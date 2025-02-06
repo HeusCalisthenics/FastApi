@@ -3,6 +3,7 @@ from pyspark.sql.types import StructType, StructField, StringType, TimestampType
 from delta.tables import DeltaTable
 from spark_session import spark
 
+from degiro import portfolio_schema, DEGIRO_TABLE_PATH
 
 
 # Define table paths
@@ -43,3 +44,4 @@ def initialize_delta_table(path, schema):
 # Initialize both Delta tables
 initialize_delta_table(LOG_TABLE_PATH, log_schema)
 initialize_delta_table(CRYPTO_TABLE_PATH, crypto_schema)
+initialize_delta_table(DEGIRO_TABLE_PATH, portfolio_schema)
