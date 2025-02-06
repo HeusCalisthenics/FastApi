@@ -7,6 +7,8 @@ __pycache__/
 *.so
 
 
+*.csv
+
 #Delta / parquet files
 000000000*.json
 *.json.crc
