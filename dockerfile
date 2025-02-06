@@ -53,12 +53,12 @@ COPY app /app/app
 # COPY app/initialize_delta_tables.py /app/
 
 COPY app/scripts /app/scripts
-
+COPY data /app/data
 
 # Copy initialization script
 
 # Run the table initialization before starting FastAPI
 RUN python3 /app/initialize_delta_tables.py
-
+RUN python3 /app/degiro.py
 # Run FastAPI on startup
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]

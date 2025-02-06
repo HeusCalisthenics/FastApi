@@ -9,8 +9,8 @@ services:
       - ./data:/mnt/data
       - ./database:/app/database
       - ./delta_tables:/app/delta_tables
-    environment:
-      - DATABASE_URL=sqlite:///app/database/requests.db
+    # environment:
+    # - DATABASE_URL=sqlite:///app/database/requests.db
     networks:
       - mynetwork
 
